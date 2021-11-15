@@ -13,19 +13,32 @@
 
   (:action move
     :parameters (?rbt - robot ?from - room ?to - room)
-    :precondition (at ?rbt - robot ?rm - room)
-    :effect (in ?itm - item ?rm - room)
+    
+    :precondition (and (at ?rbt ?from) 
+    			(not (at ?rbt ?to)))
+    			
+    :effect (at ?rbt ?to)
   )
 
   (:action pick
     :parameters(?rbt - robot ?rm - room ?itm - item)
-    :precondition (and (hand_empty ?rbt - robot))
-    :effect (holding ?rbt - robot ?itm - item)
+    
+    :precondition (and (hand_empty ?rbt) 
+    			(at ?rbt ?rm)
+    			(in ?itm ?rm))
+    			
+    :effect (and (not (in ?itm ?rm))
+    		   (holding ?rbt ?itm))
   )
 
   (:action place
     :parameters(?rbt - robot ?rm - room ?itm - item)
-    :precondition (holding ?rbt - robot ?itm - item)
-    :effect (hand_empty ?rbt - robot)
+    
+    :precondition (and (holding ?rbt ?itm) 
+    			(at ?rbt ?rm) 
+    			)
+    			
+    :effect (and (in ?itm ?rm)
+    		  (hand_empty ?rbt))
   )
 )
