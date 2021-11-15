@@ -45,6 +45,8 @@ private:
 	{
 	  RCLCPP_INFO(this->get_logger(), "Received goal request with order %s", goal->room.c_str());
 	  RCLCPP_INFO(this->get_logger(), "Received goal request with order %s", goal->object.c_str());
+	  system("gnome-terminal -x sh -c './src/planner/FF-X/ff -o src/planner/FF-X/tyreworld_domain.pddl -f src/planner/FF-X/tyreworld_facts1 > plan.txt'");
+	  
 	  (void)uuid;
 	  return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
 	}
