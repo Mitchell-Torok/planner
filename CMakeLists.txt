@@ -21,6 +21,7 @@ find_package(ament_cmake REQUIRED)
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(rclcpp_action REQUIRED)
 find_package(comp3431_interfaces REQUIRED)
 
 
@@ -37,6 +38,7 @@ add_executable(planner src/planner_node.cpp)
 #target_link_libraries(planner planner_node)
 ament_target_dependencies(planner
   rclcpp
+  rclcpp_action
   comp3431_interfaces)
 
 install(TARGETS
