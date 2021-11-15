@@ -2,6 +2,7 @@
 #include "comp3431_interfaces/srv/map_info.hpp"
 #include "comp3431_interfaces/action/move_object_to_room.hpp"
 #include "rclcpp_action/rclcpp_action.hpp"
+#include "plan_parser.hpp"
 //include "planner/planner_node.hpp"
 
 #include <memory>
@@ -45,7 +46,11 @@ private:
 	{
 	  RCLCPP_INFO(this->get_logger(), "Received goal request with order %s", goal->room.c_str());
 	  RCLCPP_INFO(this->get_logger(), "Received goal request with order %s", goal->object.c_str());
-	  system("gnome-terminal -x sh -c './src/planner/FF-X/ff -o src/planner/FF-X/tyreworld_domain.pddl -f src/planner/FF-X/tyreworld_facts1 > plan.txt'");
+	  system("gnome-terminal -- sh -c './src/planner/FF-X/ff -o src/planner/FF-X/tyreworld_domain.pddl -f src/planner/FF-X/tyreworld_facts1 > src/planner/src/plan.txt'");
+	  
+	  
+	  //PlanParser plan = new PlanParse("plan.txt");
+	  //RCLCPP_INFO(this->get_logger(), "Received goal request with order %s", PlanParser.getNextStep());
 	  
 	  (void)uuid;
 	  return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
@@ -84,7 +89,6 @@ private:
 int main(int argc, char **argv)
 {
   rclcpp::init(argc, argv);
-
   rclcpp::spin(std::make_shared<PlannerNode>());
   rclcpp::shutdown();
 }

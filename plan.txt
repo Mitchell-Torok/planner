@@ -1,0 +1,60 @@
+
+ff: parsing domain file
+domain 'TYREWORLD' defined
+ ... done.
+ff: parsing problem file
+problem 'TIREWORLD-1' defined
+ ... done.
+
+
+
+Cueing down from goal distance:   12 into depth [1][2]
+                                  11            [1][2]
+                                  10            [1]
+                                   9            [1][2][3][4][5][6]
+                                   8            [1]
+                                   7            [1]
+                                   6            [1]
+                                   5            [1]
+                                   4            [1]
+                                   3            [1]
+                                   2            [1]
+                                   1            [1]
+                                   0            
+
+ff: found legal plan as follows
+
+step    0: OPEN BOOT
+        1: FETCH R1 BOOT
+        2: FETCH PUMP BOOT
+        3: INFLATE R1
+        4: PUT-AWAY PUMP BOOT
+        5: FETCH JACK BOOT
+        6: FETCH WRENCH BOOT
+        7: LOOSEN NUTS1 THE-HUB1
+        8: JACK-UP THE-HUB1
+        9: UNDO NUTS1 THE-HUB1
+       10: REMOVE-WHEEL W1 THE-HUB1
+       11: PUT-AWAY W1 BOOT
+       12: PUT-ON-WHEEL R1 THE-HUB1
+       13: DO-UP NUTS1 THE-HUB1
+       14: JACK-DOWN THE-HUB1
+       15: TIGHTEN NUTS1 THE-HUB1
+       16: PUT-AWAY WRENCH BOOT
+       17: PUT-AWAY JACK BOOT
+       18: CLOSE BOOT
+     
+
+time spent:    0.00 seconds instantiating 25 easy, 0 hard action templates
+               0.00 seconds reachability analysis, yielding 25 facts and 25 actions
+               0.00 seconds creating final representation with 25 relevant facts
+               0.00 seconds building connectivity graph
+               0.00 seconds searching, evaluating 57 states, to a max depth of 6
+               0.00 seconds total time
+
+
+
+Can't open output file!
+
+
+
