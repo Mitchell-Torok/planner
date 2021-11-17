@@ -10,7 +10,7 @@
 #include <string>
 #include <functional>
 #include <thread>
-
+#include "plan_parser.hpp"
   
 class PlannerNode : public rclcpp::Node {
 
@@ -40,7 +40,8 @@ private:
 		const std::shared_ptr<comp3431_interfaces::srv::MapInfo::Response> response)
 	
 	{	
-	  int i = 0;	  
+	  int i = 0;	
+	  numRooms = request->blocks.size();  
 	  while (i < request->blocks.size()) {
 	  	//RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Incoming request %s", request->blocks[i].text.c_str());
 	  	
@@ -60,7 +61,7 @@ private:
 	{
 	  RCLCPP_INFO(this->get_logger(), "Received goal request with order %s", goal->room.c_str());
 	  RCLCPP_INFO(this->get_logger(), "Received goal request with order %s", goal->object.c_str());
-	  system("gnome-terminal -- sh -c './src/planner/FF-X/ff -o src/planner/FF-X/tyreworld_domain.pddl -f src/planner/FF-X/tyreworld_facts1 > src/planner/src/plan.txt'");
+	  
 	  
 	  //RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Incoming request %s", block[0].c_str());
 	  //PlanParser plan = new PlanParse("plan.txt");
@@ -71,28 +72,41 @@ private:
 	std::ofstream file;
 	file.open(problemPath);
 	file << "(define (problem moveitemtoroom)" << std::endl;
-	file << " (:domain turtlebot3-domain)" << std::endl;
+	file << "  (:domain turtlebot3-domain)" << std::endl;
 	
-	/*
+	
 	//OBJECTS
-	file << " (:objects" << std::endl;
-	file << " turtlebot - robot" << std::endl;
+	file << "  (:objects" << std::endl;
+	file << "	turtlebot - robot" << std::endl;
+	file << "	initial-room - room" << std::endl;
 	//Add Extra Objects e.g. Rooms and Items
 	
 	int i = 0;
 	int m = 0;
 	
-	while (request->blocks[i].text != NULL) {
+	while (i < numRooms) {	
 		m = 0;
-		char *string = request->blocks[i].text;
+		
+		std::string str = block[i].c_str();
+		char *cstr = new char[str.length() + 1];
+		strcpy(cstr, str.c_str());
+// do stuff
+		
+		
+		
+		
+		//const char *str = block[i].c_str();
+		//std::string str = block[i];
 		char *word;
-		word = strtok(string, " ");
+		word = strtok(cstr, " ");
 		
 		while(word != NULL) {
 			if (m == 0) {
+				file << "	";
 				file << word;
 				file << " - room" << std::endl;
 			} else {	
+				file << "	";
 				file << word;
 				file << " - item" << std::endl;
 			}
@@ -100,61 +114,76 @@ private:
 			word = strtok(NULL, " ");	
 		}
 		i++;
+		
 	}
+	//'\n'
+	file << "  )" << std::endl;
 	
-	file << ")" << std::endl;
-	
+	file << "\n";
 	
 	//INIT
-	file << "(:init" << std::endl;
+	file << "  (:init" << std::endl;
 	//Add Initial Items to their rooms
 	//ONLY EXAMPLE BELOW
 	i = 0;
 	m = 0;
+	file << "	(at turtlebot initial-room)" << std::endl;
 	//How to set initial room?
-	while (request->blocks[i].text != NULL) {
+	//Length of items in block
+	while (i < numRooms) {
 		m = 0;
-		char *string = request->blocks[i].text;
-		char *word = strtok(string, " ");;
+		
+		std::string str = block[i].c_str();
+		char *cstr = new char[str.length() + 1];
+		strcpy(cstr, str.c_str());
+		
+		
+		//const char *str = block[i].c_str();
+		char *word = strtok(cstr, " ");
 		char *room;
 		while (word != NULL) {
 			if (m == 0) {
-				file << "(in ";
+				file << "	(in ";
 				room = word;
 			
 			} else {
-				file << "%s ", word;
+				file << word;
+				file << " ";
 			
 			}
 			word = strtok(NULL, " ");	
 			m++;		
 		}
-		file << "%s)", room << std::endl;
+		file << room;
+		file << ")" << std::endl;
 		i++;
 	}
-	file << "(hand_empty turtlebot)" << std::endl;
-	//file << " (at turtlebot initial-room)" << std::endl;
-	file << ")" << std::endl;
+	file << "	(hand_empty turtlebot)" << std::endl;
+	
+	file << "  )" << std::endl;
 	
 	
-	
+	file << "\n";
 	//GOAL
 	//file << " ";
-	file << "(:goal" << std::endl;
+	file << "  (:goal" << std::endl;
 	//Add Goals from MoveObjectToRoom
-	file << "(in " << std::endl;
-	file << "%s ", goal->object.c_str();
-	file << "%s)", goal->room.c_str() << std::endl;
+	file << "	(in ";
+	file << goal->object.c_str();
+	file << " ";
+	file << goal->room.c_str();
+	file << ")" << std::endl;
 	//goal->room.c_str()
 	//goal->object.c_str()
 	
-	file << ")" << std::endl;
+	file << "  )" << std::endl;
 	
-	*/
+	
 	//End of file
 	file << ")" << std::endl;
 	file.close();
-		  
+	
+	system("gnome-terminal -- sh -c './src/planner/FF-X/ff -o src/planner/FF-X/domain.pddl -f problem.pddl > src/planner/src/solution.txt'");	  
 		  
 	  //Problem Generation ^^
 	  (void)uuid;
