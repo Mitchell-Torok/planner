@@ -3,6 +3,7 @@
 #include "comp3431_interfaces/action/move_object_to_room.hpp"
 #include "rclcpp_action/rclcpp_action.hpp"
 #include "plan_parser.hpp"
+#include "comp3431_interfaces/msg/qr_code_block.hpp"
 //include "planner/planner_node.hpp"
 
 #include <fstream>
@@ -32,9 +33,9 @@ public:
 
 
 private:
-	std::string block[10] = {""};
-	int numRooms = 0;
-	 
+	//std::string block[10] = {""};
+	//int numRooms = 0;
+	std::vector<comp3431_interfaces::msg::QRCodeBlock> blocks;
 	 
 	//Sets map info when a new command comes in 
 	void set_map_info(
@@ -42,13 +43,20 @@ private:
 		const std::shared_ptr<comp3431_interfaces::srv::MapInfo::Response> response)
 	
 	{	
-	  numRooms = request->blocks.size();  
-	  for (int i = 0; i < request->blocks.size(); i ++) {	
-	  	block[i] = request->blocks[i].text;
+	  //numRooms = request->blocks.size();  
+	  for (int i = 0; i < int(request->blocks.size()); i ++) {
 	  	RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Incomming Text: %s", request->blocks[i].text.c_str());
 	  	RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Incomming x:    %f", request->blocks[i].pose.position.x);
 	  	RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Incomming y:    %f", request->blocks[i].pose.position.y);
 	  	RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Incomming z:    %f", request->blocks[i].pose.position.z);
+	  	
+	  	auto block = comp3431_interfaces::msg::QRCodeBlock();
+		block.text = request->blocks[i].text.c_str();
+		block.pose.position.x = request->blocks[i].pose.position.x;
+		block.pose.position.y = request->blocks[i].pose.position.y;
+		block.pose.position.z = request->blocks[i].pose.position.z;
+		  
+		blocks.push_back(block);
 	  }
 	}
 	
@@ -78,10 +86,10 @@ private:
 	int i = 0;
 	int m = 0;
 	
-	while (i < numRooms) {	
+	while (i < int(blocks.size())) {	
 		m = 0;
 		
-		std::string str = block[i].c_str();
+		std::string str = blocks[i].text;
 		char *cstr = new char[str.length() + 1];
 		strcpy(cstr, str.c_str());
 		char *word;
@@ -111,9 +119,9 @@ private:
 	i = 0;
 	m = 0;
 	file << "	(at turtlebot initial-room)" << std::endl;
-	while (i < numRooms) {
+	while (i < int(blocks.size())) {
 		m = 0;
-		std::string str = block[i].c_str();
+		std::string str = blocks[i].text;
 		char *cstr = new char[str.length() + 1];
 		strcpy(cstr, str.c_str());
 		char *word = strtok(cstr, " ");
