@@ -197,7 +197,7 @@ private:
 				return;
 		      }
 		      goal_handle->publish_feedback(feedback);
-      			RCLCPP_INFO(this->get_logger(), "Publish feedback");
+      		      RCLCPP_INFO(this->get_logger(), "Publish feedback");
     		}
 
 	}
