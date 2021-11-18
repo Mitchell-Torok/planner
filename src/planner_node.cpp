@@ -27,7 +27,7 @@ public:
 	      std::bind(&PlannerNode::handle_accepted, this, _1));
 	      
       
-		service_ = this->create_service<comp3431_interfaces::srv::MapInfo>( "set_map_info", std::bind(&PlannerNode::set_map_info, this, _1, _2));
+	    service_ = this->create_service<comp3431_interfaces::srv::MapInfo>( "set_map_info", std::bind(&PlannerNode::set_map_info, this, _1, _2));
 	}
 
 
@@ -35,23 +35,21 @@ private:
 	std::string block[10] = {""};
 	int numRooms = 0;
 	 
+	 
+	//Sets map info when a new command comes in 
 	void set_map_info(
 		const std::shared_ptr<comp3431_interfaces::srv::MapInfo::Request> request,
 		const std::shared_ptr<comp3431_interfaces::srv::MapInfo::Response> response)
 	
 	{	
-	  int i = 0;	
 	  numRooms = request->blocks.size();  
-	  while (i < request->blocks.size()) {
-	  	//RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Incoming request %s", request->blocks[i].text.c_str());
-	  	
+	  for (int i = 0; i < request->blocks.size(); i ++) {	
 	  	block[i] = request->blocks[i].text;
-	  	RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Incoming request %s", block[i].c_str());
-	  	i++;
+	  	RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Incomming Text: %s", request->blocks[i].text.c_str());
+	  	RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Incomming x:    %f", request->blocks[i].pose.position.x);
+	  	RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Incomming y:    %f", request->blocks[i].pose.position.y);
+	  	RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Incomming z:    %f", request->blocks[i].pose.position.z);
 	  }
-	  
-	  //RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Incoming request %d", request->blocks.size());
-	  //RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Incoming request %s", request->blocks[1].text.c_str());
 	}
 	
 
@@ -63,10 +61,6 @@ private:
 	  RCLCPP_INFO(this->get_logger(), "Received goal request with order %s", goal->object.c_str());
 	  
 	  
-	  //RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Incoming request %s", block[0].c_str());
-	  //PlanParser plan = new PlanParse("plan.txt");
-	  //RCLCPP_INFO(this->get_logger(), "Received goal request with order %s", PlanParser.getNextStep());
-		  
 	//Problem Generation 
 	std::string problemPath = "problem.pddl";
 	std::ofstream file;
@@ -90,16 +84,8 @@ private:
 		std::string str = block[i].c_str();
 		char *cstr = new char[str.length() + 1];
 		strcpy(cstr, str.c_str());
-// do stuff
-		
-		
-		
-		
-		//const char *str = block[i].c_str();
-		//std::string str = block[i];
 		char *word;
 		word = strtok(cstr, " ");
-		
 		while(word != NULL) {
 			if (m == 0) {
 				file << "	";
@@ -113,12 +99,9 @@ private:
 			m++;
 			word = strtok(NULL, " ");	
 		}
-		i++;
-		
+		i++;		
 	}
-	//'\n'
 	file << "  )" << std::endl;
-	
 	file << "\n";
 	
 	//INIT
@@ -128,28 +111,20 @@ private:
 	i = 0;
 	m = 0;
 	file << "	(at turtlebot initial-room)" << std::endl;
-	//How to set initial room?
-	//Length of items in block
 	while (i < numRooms) {
 		m = 0;
-		
 		std::string str = block[i].c_str();
 		char *cstr = new char[str.length() + 1];
 		strcpy(cstr, str.c_str());
-		
-		
-		//const char *str = block[i].c_str();
 		char *word = strtok(cstr, " ");
 		char *room;
 		while (word != NULL) {
 			if (m == 0) {
 				file << "	(in ";
 				room = word;
-			
 			} else {
 				file << word;
 				file << " ";
-			
 			}
 			word = strtok(NULL, " ");	
 			m++;		
@@ -159,10 +134,7 @@ private:
 		i++;
 	}
 	file << "	(hand_empty turtlebot)" << std::endl;
-	
 	file << "  )" << std::endl;
-	
-	
 	file << "\n";
 	//GOAL
 	//file << " ";
@@ -214,6 +186,19 @@ private:
 	
 	void execute(const std::shared_ptr<rclcpp_action::ServerGoalHandle<comp3431_interfaces::action::MoveObjectToRoom>> goal_handle) {
     		RCLCPP_INFO(this->get_logger(), "Executing goal");
+    		const auto goal = goal_handle->get_goal();
+    		auto feedback = std::make_shared<comp3431_interfaces::action::MoveObjectToRoom::Feedback>();
+    		while(1) {
+
+    			if (goal_handle->is_canceling()) {
+				//result = sequence;
+				//goal_handle->canceled();
+				RCLCPP_INFO(this->get_logger(), "Goal canceled");
+				return;
+		      }
+		      goal_handle->publish_feedback(feedback);
+      			RCLCPP_INFO(this->get_logger(), "Publish feedback");
+    		}
 
 	}
 };

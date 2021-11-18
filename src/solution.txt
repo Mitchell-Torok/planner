@@ -1,0 +1,31 @@
+
+ff: parsing domain file
+domain 'TURTLEBOT3-DOMAIN' defined
+ ... done.
+ff: parsing problem file
+problem 'MOVEITEMTOROOM' defined
+ ... done.
+
+
+
+Cueing down from goal distance:    4 into depth [1]
+                                   3            [1]
+                                   2            [1]
+                                   1            [1]
+                                   0            
+
+ff: found legal plan as follows
+
+step    0: MOVE TURTLEBOT INITIAL-ROOM LIVING-ROOM
+        1: PICK TURTLEBOT LIVING-ROOM SNICKERS
+        2: MOVE TURTLEBOT INITIAL-ROOM KITCHEN
+        3: PLACE TURTLEBOT KITCHEN SNICKERS
+     
+
+time spent:    0.00 seconds instantiating 21 easy, 0 hard action templates
+               0.00 seconds reachability analysis, yielding 14 facts and 18 actions
+               0.00 seconds creating final representation with 12 relevant facts
+               0.00 seconds building connectivity graph
+               0.00 seconds searching, evaluating 5 states, to a max depth of 1
+               0.00 seconds total time
+
