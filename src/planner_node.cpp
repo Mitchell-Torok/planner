@@ -2,16 +2,17 @@
 #include "comp3431_interfaces/srv/map_info.hpp"
 #include "comp3431_interfaces/action/move_object_to_room.hpp"
 #include "rclcpp_action/rclcpp_action.hpp"
-#include "plan_parser.hpp"
+//#include "plan_parser.hpp"
 #include "comp3431_interfaces/msg/qr_code_block.hpp"
-//include "planner/planner_node.hpp"
+#include "planner/plan_parser.hpp"
+#include "nav2_msgs/action/navigate_to_pose.hpp"
 
 #include <fstream>
 #include <memory>
 #include <string>
 #include <functional>
 #include <thread>
-#include "plan_parser.hpp"
+//#include "plan_parser.hpp"
   
 class PlannerNode : public rclcpp::Node {
 
@@ -27,7 +28,7 @@ public:
 	      std::bind(&PlannerNode::handle_cancel, this, _1),
 	      std::bind(&PlannerNode::handle_accepted, this, _1));
 	      
-      
+	    this->client_ptr_ = rclcpp_action::create_client<nav2_msgs::action::NavigateToPose>(this,"navigate_to_pose");    		
 	    service_ = this->create_service<comp3431_interfaces::srv::MapInfo>( "set_map_info", std::bind(&PlannerNode::set_map_info, this, _1, _2));
 	}
 
@@ -191,24 +192,118 @@ private:
 	
 	rclcpp::Service<comp3431_interfaces::srv::MapInfo>::SharedPtr service_;
 	rclcpp_action::Server<comp3431_interfaces::action::MoveObjectToRoom>::SharedPtr action_server_;
-	
+	rclcpp_action::Client<nav2_msgs::action::NavigateToPose>::SharedPtr client_ptr_;
 	void execute(const std::shared_ptr<rclcpp_action::ServerGoalHandle<comp3431_interfaces::action::MoveObjectToRoom>> goal_handle) {
     		RCLCPP_INFO(this->get_logger(), "Executing goal");
     		const auto goal = goal_handle->get_goal();
     		auto feedback = std::make_shared<comp3431_interfaces::action::MoveObjectToRoom::Feedback>();
-    		while(1) {
+    		PlanParser *plan = new PlanParser("/home/rsa2021/Ass3_ws/src/planner/src/solution.txt"); 
+    		
+    		while(!(plan->done())) {
+    			//RCLCPP_INFO(this->get_logger(), "planning");
+    			
+    			std::vector<std::string> next = plan->getNextStep();
+    			RCLCPP_INFO(this->get_logger(), "%s", next[0].c_str());
+    			//RCLCPP_INFO(this->get_logger(), "%s", plan->getNextStep[1]);
 
+				//plan = planParser.getNextStep;
     			if (goal_handle->is_canceling()) {
 				//result = sequence;
 				//goal_handle->canceled();
-				RCLCPP_INFO(this->get_logger(), "Goal canceled");
+					RCLCPP_INFO(this->get_logger(), "Goal canceled");
 				return;
 		      }
+		      //next[0].c_str().compare("pick");
+		      std::string str1 = next[0].c_str();
+		      std::string str2 = "pick";
+		      if (str1.compare(str2) == 0) {
+		      	RCLCPP_INFO(this->get_logger(), "Picked up the %s in the %s", next[3].c_str(), next[2].c_str());
+		      	
+		      }
+		      str2 = "place";
+		      if (str1.compare(str2) == 0) {
+		      	RCLCPP_INFO(this->get_logger(), "Placed the %s in the %s", next[3].c_str(), next[2].c_str());
+
+		      	
+		      }
+		      /*
+		      if (!this->client_ptr_->wait_for_action_server()) {
+      			RCLCPP_ERROR(this->get_logger(), "Action server not available after waiting");
+      			rclcpp::shutdown();
+    		  	}
+    		  */
+    		auto goal_msg = nav2_msgs::action::NavigateToPose::Goal();
+    		//goal_msg.pose.position.x = -2.0;
+    		//goal_msg.pose.position.y = 1.0;
+    		//goal_msg.pose.position.z = 0.0;
+    		/*
+    			auto send_goal_options = rclcpp_action::Client<nav2_msgs::action::NavigateToPose>::SendGoalOptions();
+    			send_goal_options.goal_response_callback = std::bind(&PlannerNode::goal_response_callback, this, std::placeholders::_1);
+    			send_goal_options.feedback_callback = std::bind(&PlannerNode::feedback_callback, this, std::placeholders::_1, std::placeholders::_2);
+    			send_goal_options.result_callback = std::bind(&PlannerNode::result_callback, this, std::placeholders::_1);
+    		
+    			this->client_ptr_->async_send_goal(goal_msg, send_goal_options);
+    				
 		      goal_handle->publish_feedback(feedback);
       		      RCLCPP_INFO(this->get_logger(), "Publish feedback");
+    		*/
     		}
+    		
+    		//RCLCPP_INFO(this->get_logger(), "doneee");
 
 	}
+	/*
+	  void goal_response_callback(std::shared_future<rclcpp_action::ClientGoalHandle<nav2_msgs::action::NavigateToPose>::SharedPtr> future)
+  {
+    auto goal_handle = future.get();
+    if (!goal_handle) {
+      RCLCPP_ERROR(this->get_logger(), "Goal was rejected by server");
+    } else {
+      RCLCPP_INFO(this->get_logger(), "Goal accepted by server, waiting for result");
+    }
+  }
+
+  void feedback_callback(rclcpp_action::ClientGoalHandle<nav2_msgs::action::NavigateToPose>::SharedPtr, const std::shared_ptr<const nav2_msgs::action::NavigateToPose::Feedback> feedback)
+  {
+    std::stringstream ss;
+    
+    ss << "Next number in sequence received: ";
+    for (auto number : feedback->partial_sequence) {
+      ss << number << " ";
+    }
+    
+    RCLCPP_INFO(this->get_logger(), ss.str().c_str());
+    
+    RCLCPP_INFO(this->get_logger(), "feedbackcall");
+  }
+
+  void result_callback(const rclcpp_action::ClientGoalHandle<nav2_msgs::action::NavigateToPose>::WrappedResult & result)
+  {
+    switch (result.code) {
+      case rclcpp_action::ResultCode::SUCCEEDED:
+        break;
+      case rclcpp_action::ResultCode::ABORTED:
+        RCLCPP_ERROR(this->get_logger(), "Goal was aborted");
+        return;
+      case rclcpp_action::ResultCode::CANCELED:
+        RCLCPP_ERROR(this->get_logger(), "Goal was canceled");
+        return;
+      default:
+        RCLCPP_ERROR(this->get_logger(), "Unknown result code");
+        return;
+    }
+    std::stringstream ss;
+    
+    ss << "Result received: ";
+    for (auto number : result.result->sequence) {
+      ss << number << " ";
+    }
+    RCLCPP_INFO(this->get_logger(), ss.str().c_str());
+    
+    RCLCPP_INFO(this->get_logger(), "Shutdown");
+    rclcpp::shutdown();
+  }
+  */
 };
 
 
