@@ -23,9 +23,10 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_action REQUIRED)
 find_package(comp3431_interfaces REQUIRED)
+find_package(nav2_msgs REQUIRED)
 
 
-#include_directories(include)
+include_directories(include)
 #add_library(planner_node src/planner_node.cpp)
 #ament_target_dependencies(planner_node
 #  rclcpp
@@ -34,11 +35,14 @@ find_package(comp3431_interfaces REQUIRED)
 
 
 
-add_executable(planner src/planner_node.cpp)
+add_executable(planner 
+		src/planner_node.cpp
+		src/plan_parser.cpp)
 #target_link_libraries(planner planner_node)
 ament_target_dependencies(planner
   rclcpp
   rclcpp_action
+  nav2_msgs
   comp3431_interfaces)
 
 install(TARGETS
