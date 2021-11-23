@@ -19,7 +19,8 @@
 #include <cctype>
 #include <algorithm>
 #include <vector>
-#include "comp3431_ass3_planner/plan_parser.hpp"
+#include "planner/plan_parser.hpp"
+
 
 PlanParser::PlanParser(std::string planPath)
 {
@@ -62,7 +63,7 @@ PlanParser::PlanParser(std::string planPath)
 
       if (firstStepFound) {
         auto columnIndex = line.find(":");
-
+	//RCLCPP_INFO(this->get_logger(), "Step1Found");
         // Check if we couldn't find a column. If there is none, we've reached end of steps
         if (columnIndex == std::string::npos) {
           break;

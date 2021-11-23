@@ -54,7 +54,7 @@ private:
 	  	
 	  	auto block = comp3431_interfaces::msg::QRCodeBlock();
 		block.text = request->blocks[i].text.c_str();
-		block.pose.position.x = request->blocks[i].pose.position.x;
+		block.pose.position.x = request->blocks[i].pose.position.x + 1.0;
 		block.pose.position.y = request->blocks[i].pose.position.y;
 		block.pose.position.z = request->blocks[i].pose.position.z;
 		  
@@ -128,19 +128,29 @@ private:
 		strcpy(cstr, str.c_str());
 		char *word = strtok(cstr, " ");
 		char *room;
+		int objfound = 0;
 		while (word != NULL) {
 			if (m == 0) {
-				file << "	(in ";
+				//file << "	(in ";
 				room = word;
-			} else {
+			//} else {
+				
+				//word = strtok(NULL, " ");
+			} 
+			else if (m != 0 && objfound == 0) {
+				file << "	(in ";
 				file << word;
 				file << " ";
+				//objfound = 1;
+				file << room;
+				file << ")" << std::endl;
+				
 			}
-			word = strtok(NULL, " ");	
+		
+			word = strtok(NULL, " ");
+				
 			m++;		
 		}
-		file << room;
-		file << ")" << std::endl;
 		i++;
 	}
 	file << "	(hand_empty turtlebot)" << std::endl;
@@ -306,9 +316,10 @@ private:
     		  	}
     		  */
     		
-    		std::cout << "---------End Generated Plan--------- " << std::endl;
+    		std::cout << "Finished Plan" << std::endl;
     		//RCLCPP_INFO(this->get_logger(), "doneee");
-
+		auto result = std::make_shared<comp3431_interfaces::action::MoveObjectToRoom::Result>();
+		goal_handle->succeed(result);
 	}
 	
 	  void goal_response_callback(std::shared_future<rclcpp_action::ClientGoalHandle<nav2_msgs::action::NavigateToPose>::SharedPtr> future)
