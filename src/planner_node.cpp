@@ -33,8 +33,6 @@ public:
 
 
 private:
-	//std::string block[10] = {""};
-	//int numRooms = 0;
 	bool fin = false;
 	bool abort = false;
 	std::vector<comp3431_interfaces::msg::QRCodeBlock> blocks;
@@ -43,9 +41,7 @@ private:
 	void set_map_info(
 		const std::shared_ptr<comp3431_interfaces::srv::MapInfo::Request> request,
 		const std::shared_ptr<comp3431_interfaces::srv::MapInfo::Response> response)
-	
 	{	
-	  //numRooms = request->blocks.size();  
 	  for (int i = 0; i < int(request->blocks.size()); i ++) {
 	  	RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Incomming Text: %s", request->blocks[i].text.c_str());
 	  	RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Incomming x:    %f", request->blocks[i].pose.position.x);
@@ -83,7 +79,6 @@ private:
 	file << "  (:objects" << std::endl;
 	file << "	turtlebot - robot" << std::endl;
 	file << "	initial-room - room" << std::endl;
-	//Add Extra Objects e.g. Rooms and Items
 	
 	int i = 0;
 	int m = 0;
@@ -117,7 +112,6 @@ private:
 	//INIT
 	file << "  (:init" << std::endl;
 	//Add Initial Items to their rooms
-	//ONLY EXAMPLE BELOW
 	i = 0;
 	m = 0;
 	file << "	(at turtlebot initial-room)" << std::endl;
@@ -131,24 +125,16 @@ private:
 		int objfound = 0;
 		while (word != NULL) {
 			if (m == 0) {
-				//file << "	(in ";
 				room = word;
-			//} else {
-				
-				//word = strtok(NULL, " ");
 			} 
 			else if (m != 0 && objfound == 0) {
 				file << "	(in ";
 				file << word;
 				file << " ";
-				//objfound = 1;
 				file << room;
-				file << ")" << std::endl;
-				
+				file << ")" << std::endl;	
 			}
-		
-			word = strtok(NULL, " ");
-				
+			word = strtok(NULL, " ");	
 			m++;		
 		}
 		i++;
@@ -157,7 +143,6 @@ private:
 	file << "  )" << std::endl;
 	file << "\n";
 	//GOAL
-	//file << " ";
 	file << "  (:goal" << std::endl;
 	//Add Goals from MoveObjectToRoom
 	file << "	(in ";
@@ -165,9 +150,6 @@ private:
 	file << " ";
 	file << goal->room.c_str();
 	file << ")" << std::endl;
-	//goal->room.c_str()
-	//goal->object.c_str()
-	
 	file << "  )" << std::endl;
 	
 	
@@ -175,14 +157,12 @@ private:
 	file << ")" << std::endl;
 	file.close();
 	
+	//Generate Problem 
 	system("gnome-terminal -- sh -c './src/planner/FF-X/ff -o src/planner/FF-X/domain.pddl -f problem.pddl > src/planner/src/solution.txt'");	  
 		  
-	  //Problem Generation ^^
 	  (void)uuid;
 	  return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
 	}
-
-
 
 	rclcpp_action::CancelResponse handle_cancel(
 	  const std::shared_ptr< rclcpp_action::ServerGoalHandle<comp3431_interfaces::action::MoveObjectToRoom>> goal_handle)
@@ -210,50 +190,34 @@ private:
     		auto feedback = std::make_shared<comp3431_interfaces::action::MoveObjectToRoom::Feedback>();
     		PlanParser *plan = new PlanParser("/home/rsa2021/Ass3_ws/src/planner/src/solution.txt"); 
     		PlanParser *plan1 = new PlanParser("/home/rsa2021/Ass3_ws/src/planner/src/solution.txt"); 
+		//Display Problem output
     		std::cout << "-----------Generated Plan-----------" << std::endl;
     		bool firstMove = false;
-    		
     		while (!(plan1->done())) {
     			std::vector<std::string> next = plan1->getNextStep();
-    			
     			std::cout << next[0].c_str() << " " <<next[1].c_str() << " " << next[2].c_str() << " " <<next[3].c_str() << std::endl;
-    			
-		   
     		}
     		std::cout << "---------End Generated Plan--------- " << std::endl;
     		
-    		
+    		//Start executing plan
     		while(!(plan->done())) {
-    			//RCLCPP_INFO(this->get_logger(), "planning");
-    			
     			std::vector<std::string> next = plan->getNextStep();
-    			//RCLCPP_INFO(this->get_logger(), "%s", next[0].c_str());
-    			
-    			//RCLCPP_INFO(this->get_logger(), "%s", plan->getNextStep[1]);
-
-				//plan = planParser.getNextStep;
     			if (goal_handle->is_canceling()) {
-				//result = sequence;
-				//goal_handle->canceled();
 				RCLCPP_INFO(this->get_logger(), "Goal canceled");
 				return;
 		      }
-		      //next[0].c_str().compare("pick");
+			
 		      std::string str1 = next[0].c_str();
 		      std::string str2 = "pick";
 		      if (str1.compare(str2) == 0) {
 		      	std::cout << "pick turtlebot " << next[2].c_str() << " " <<next[3].c_str() << std::endl;
-		      	//RCLCPP_INFO(this->get_logger(), "pick turtlebot %s %s", next[2].c_str(), next[3].c_str());
-		      	
 		      }
 		      str2 = "place";
 		      if (str1.compare(str2) == 0) {
-		      	std::cout << "place turtlebot " << next[2].c_str() << " " <<next[3].c_str() << std::endl;
-		      	//RCLCPP_INFO(this->get_logger(), "place turtlebot %s %s", next[2].c_str(), next[3].c_str());
-
-		      	
+		      	std::cout << "place turtlebot " << next[2].c_str() << " " <<next[3].c_str() << std::endl;      	
 		      }
-		      //WHen requested to move send that action
+			
+		      //When requested to move send that action
 		      str2 = "move";
 		      
 		      if (str1.compare(str2) == 0) {
@@ -265,29 +229,17 @@ private:
 					char *cstr = new char[str.length() + 1];
 					strcpy(cstr, str.c_str());
 					std::string room = strtok(cstr, " ");
-    				std::string location = next[3].c_str();
-    				if (room.compare(location.c_str()) == 0) {
-    					goal_msg.pose.pose.position.x = blocks[i].pose.position.x;
-    					goal_msg.pose.pose.position.y = blocks[i].pose.position.y;
-    					goal_msg.pose.pose.position.z = blocks[i].pose.position.z;
-    					RCLCPP_INFO(this->get_logger(), "x = %f, y = %f, z = %f", goal_msg.pose.pose.position.x, goal_msg.pose.pose.position.y, goal_msg.pose.pose.position.z);
-    					break;
-    				}
+					std::string location = next[3].c_str();
+					if (room.compare(location.c_str()) == 0) {
+						goal_msg.pose.pose.position.x = blocks[i].pose.position.x;
+						goal_msg.pose.pose.position.y = blocks[i].pose.position.y;
+						goal_msg.pose.pose.position.z = blocks[i].pose.position.z;
+						RCLCPP_INFO(this->get_logger(), "Navigating to x = %f, y = %f", goal_msg.pose.pose.position.x, goal_msg.pose.pose.position.y);
+						break;
+					}
     				i++;
     			}
     		
-    		/*
-    		if (firstMove == false) {
-    			goal_msg.pose.pose.position.x = 0.0;
-    			goal_msg.pose.pose.position.y = -1.5;
-    			goal_msg.pose.pose.position.z = 0.0;
-    			firstMove = true;
-    		} else {
-    			goal_msg.pose.pose.position.x = -2.0;
-    			goal_msg.pose.pose.position.y = 1.0;
-    			goal_msg.pose.pose.position.z = 0.0;
-    		}
-    		*/
     			auto send_goal_options = rclcpp_action::Client<nav2_msgs::action::NavigateToPose>::SendGoalOptions();
     			send_goal_options.goal_response_callback = std::bind(&PlannerNode::goal_response_callback, this, std::placeholders::_1);
     			send_goal_options.feedback_callback = std::bind(&PlannerNode::feedback_callback, this, std::placeholders::_1, std::placeholders::_2);
@@ -300,7 +252,7 @@ private:
     					this->client_ptr_->async_send_goal(goal_msg, send_goal_options);
     					abort = false;
     				}
-    				//RCLCPP_INFO(this->get_logger(), "%d", fin);
+  
     			}
     			fin = false;
 		      goal_handle->publish_feedback(feedback);
@@ -309,15 +261,9 @@ private:
     		}
 		      
 		      }
-		      /*
-		      if (!this->client_ptr_->wait_for_action_server()) {
-      			RCLCPP_ERROR(this->get_logger(), "Action server not available after waiting");
-      			rclcpp::shutdown();
-    		  	}
-    		  */
-    		
+
     		std::cout << "Finished Plan" << std::endl;
-    		//RCLCPP_INFO(this->get_logger(), "doneee");
+
 		auto result = std::make_shared<comp3431_interfaces::action::MoveObjectToRoom::Result>();
 		goal_handle->succeed(result);
 	}
@@ -334,28 +280,17 @@ private:
 
   void feedback_callback(rclcpp_action::ClientGoalHandle<nav2_msgs::action::NavigateToPose>::SharedPtr, const std::shared_ptr<const nav2_msgs::action::NavigateToPose::Feedback> feedback)
   {
-    std::stringstream ss;
-    
-    ss << "Next number in sequence received: ";
-    //RCLCPP_INFO(this->get_logger(), "dist = %f" ,feedback->distance_remaining);
-//    for (auto number : feedback->partial_sequence) {
- //     ss << number << " ";
-//    }
-    
-    //RCLCPP_INFO(this->get_logger(), ss.str().c_str());
-    
-    //RCLCPP_INFO(this->get_logger(), "feedbackcall");
   }
 
   void result_callback(const rclcpp_action::ClientGoalHandle<nav2_msgs::action::NavigateToPose>::WrappedResult & result)
   {
-  	//RCLCPP_INFO(this->get_logger(), "result = %s, result.result = %s", result.code, result.result);
     switch (result.code) {
       case rclcpp_action::ResultCode::SUCCEEDED:
-        RCLCPP_ERROR(this->get_logger(), "Goal was successful");
+        RCLCPP_INFO(this->get_logger(), "Goal was successful");
         break;
       case rclcpp_action::ResultCode::ABORTED:
         RCLCPP_ERROR(this->get_logger(), "Goal was aborted");
+	RCLCPP_INFO(this->get_logger(), "Trying to continue movement");
         abort = true;
         return;
       case rclcpp_action::ResultCode::CANCELED:
@@ -365,18 +300,8 @@ private:
         RCLCPP_ERROR(this->get_logger(), "Unknown result code");
         return;
     }
-    std::stringstream ss;
     fin = true;
-    ss << "Result received: ";
-//    for (auto number : result.result->sequence) {
-//      ss << number << " ";
-//    }
-    RCLCPP_INFO(this->get_logger(), ss.str().c_str());
-    
-    //RCLCPP_INFO(this->get_logger(), "Shutdown");
-    //rclcpp::shutdown();
   }
-  
 };
 
 
